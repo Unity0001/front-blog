@@ -1,4 +1,4 @@
-import { AuthForm } from "@/components/authentications/auth-form";
+import { AuthForm } from "@/components/authentications/auth_form";
 import { AuthBackground } from "@/components/authentications/authBackground";
 
 export default function Home() {
