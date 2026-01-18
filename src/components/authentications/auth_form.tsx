@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import api from "@/services/api";
 import { ButtonAuth } from "./button_auth";
 import { InputField } from "./InputField";
+import { useRouter } from "next/navigation";
 
 export function AuthForm() {
   const [isLogin, setIsLogin] = useState(true);
@@ -10,32 +12,64 @@ export function AuthForm() {
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
   const [nome, setNome] = useState("");
+  const router = useRouter();
 
-  const toggleForm = (login: boolean) => {
+  function toggleForm(login: boolean) {
     setIsLogin(login);
     setEmail("");
     setSenha("");
     setConfirmarSenha("");
     setNome("");
-  };
+  }
 
-  const handleCadastro = () => {
+  async function handleCadastro() {
+    console.log("➡️ handleCadastro executou");
+
     if (senha !== confirmarSenha) {
-      alert("As senhas não coincidem!");
+      alert("As senhas não coincidem");
       return;
     }
-    console.log("Conta criada:", { nome, email, senha });
-  };
 
-  const handleLogin = () => {
-    console.log("Login:", { email, senha });
-  };
+    try {
+      await api.post("/api/users", {
+        name: nome,
+        email,
+        password: senha,
+      });
+
+      alert("Conta criada com sucesso");
+      toggleForm(true);
+    } catch (error: any) {
+      alert(error.response?.data?.message || "Erro ao cadastrar");
+    }
+  }
+
+  async function handleLogin() {
+    console.log("➡️ handleLogin executou");
+
+    try {
+      const response = await api.post("/api/users/login", {
+        email,
+        password: senha,
+      });
+
+      localStorage.setItem("token", response.data.token);
+      router.push("/home");
+    } catch (error: any) {
+      alert(error.response?.data?.message || "Erro ao fazer login");
+    }
+  }
 
   return (
     <div className="bg-white p-4 rounded-2xl shadow-md w-full max-w-md text-center">
-      <h2 className="text-2xl font-bold text-green-600 mb-2">Bem-vindo</h2>
-      <p className="text-gray-500 mb-6">Faça login ou crie uma nova conta</p>
+      <h2 className="text-2xl font-bold text-green-600 mb-2">
+        Bem-vindo
+      </h2>
+      <p className="text-gray-500 mb-6">
+        Faça login ou crie uma nova conta
+      </p>
 
+      {/* BOTÕES DE TROCA */}
       <div className="flex justify-center mb-6">
         <ButtonAuth
           isActive={isLogin}
@@ -54,8 +88,15 @@ export function AuthForm() {
         </ButtonAuth>
       </div>
 
+      {/* FORMULÁRIOS */}
       {isLogin ? (
-        <form className="flex flex-col space-y-4">
+        <form
+          className="flex flex-col space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleLogin();
+          }}
+        >
           <InputField
             label="Email"
             type="email"
@@ -72,12 +113,18 @@ export function AuthForm() {
             onChange={setSenha}
           />
 
-          <ButtonAuth full isActive onClick={handleLogin}>
+          <ButtonAuth full isActive type="submit">
             Entrar
           </ButtonAuth>
         </form>
       ) : (
-        <form className="flex flex-col space-y-4">
+        <form
+          className="flex flex-col space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleCadastro();
+          }}
+        >
           <InputField
             label="Nome"
             type="text"
@@ -110,7 +157,7 @@ export function AuthForm() {
             onChange={setConfirmarSenha}
           />
 
-          <ButtonAuth full isActive onClick={handleCadastro}>
+          <ButtonAuth full isActive type="submit">
             Criar conta
           </ButtonAuth>
         </form>

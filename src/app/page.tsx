@@ -1,3 +1,5 @@
+"use client";
+
 import { AuthForm } from "@/components/authentications/auth_form";
 import { AuthBackground } from "@/components/authentications/authBackground";
 
