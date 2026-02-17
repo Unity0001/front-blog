@@ -45,16 +45,25 @@ export function AuthForm() {
   }
 
   async function handleLogin() {
-    console.log("➡️ handleLogin executou");
-
     try {
       const response = await api.post("/api/users/login", {
         email,
         password: senha,
       });
 
-      localStorage.setItem("token", response.data.token);
-      router.push("/home");
+      const token = response.data.token;
+      localStorage.setItem("token", token);
+
+      const userResponse = await api.get("/api/users/me");
+
+      const user = userResponse.data;
+
+      if (user.role === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/home");
+      }
+
     } catch (error: any) {
       alert(error.response?.data?.message || "Erro ao fazer login");
     }
@@ -68,8 +77,6 @@ export function AuthForm() {
       <p className="text-gray-500 mb-6">
         Faça login ou crie uma nova conta
       </p>
-
-      {/* BOTÕES DE TROCA */}
       <div className="flex justify-center mb-6">
         <ButtonAuth
           isActive={isLogin}
@@ -87,8 +94,6 @@ export function AuthForm() {
           Cadastro
         </ButtonAuth>
       </div>
-
-      {/* FORMULÁRIOS */}
       {isLogin ? (
         <form
           className="flex flex-col space-y-4"
